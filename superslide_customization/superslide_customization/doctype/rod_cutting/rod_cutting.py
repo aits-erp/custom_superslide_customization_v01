@@ -75,13 +75,71 @@ class RODCutting(Document):
 
         self.db_set("stock_entry_ref", stock_entry.name)
 
-
-
     # ==========================================================
     # CREATE REPACK STOCK ENTRY
     # ==========================================================
 
     def create_stock_entry(self):
+
+        try:
+
+            se = frappe.new_doc("Stock Entry")
+
+            se.stock_entry_type = "Repack"
+            se.company = frappe.defaults.get_user_default("Company")
+
+            # OUT ITEM
+            se.append(
+                "items",
+                {
+                    "item_code": self.item,
+                    "qty": self.qty,
+                    "s_warehouse": self.warehouse,
+                },
+            )
+
+            # IN ITEMS
+            for row in self.rod_cutting_pieces:
+
+                se.append(
+                    "items",
+                    {
+                        "item_code": row.item,
+                        "qty": row.qty,
+                        "t_warehouse": self.warehouse,
+                    },
+                )
+
+            # APPLY LENGTH CALCULATION
+            for item in se.items:
+
+                if item.qty and item.item_code:
+
+                    length = frappe.db.get_value("Item", item.item_code, "custom_length") or 0
+                    length = float(length)
+
+                    if item.qty != 0:
+
+                        if item.t_warehouse and "Cut" in item.t_warehouse:
+                            item.custom_millimeter = length / item.qty
+                        else:
+                            item.custom_millimeter = length * item.qty
+
+            se.insert(ignore_permissions=True)
+            se.submit()
+
+            return se
+
+        except Exception:
+
+            frappe.log_error(
+                frappe.get_traceback(),
+                "Rod Cutting Stock Entry Creation Failed",
+            )
+
+            frappe.throw("Failed to create Stock Entry")
+
+    # def create_stock_entry(self):
 
         try:
 

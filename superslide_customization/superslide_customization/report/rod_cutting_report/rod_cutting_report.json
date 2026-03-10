@@ -1,0 +1,29 @@
+{
+ "add_total_row": 0,
+ "add_translate_data": 0,
+ "columns": [],
+ "creation": "2026-03-10 17:00:33.060190",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "letter_head": null,
+ "modified": "2026-03-10 17:01:44.875647",
+ "modified_by": "Administrator",
+ "module": "superslide_customization",
+ "name": "Rod Cutting Report",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "ROD Cutting",
+ "report_name": "Rod Cutting Report",
+ "report_script": "for item in doc.items:\r\n\r\n    if item.qty and item.item_code:\r\n\r\n        length = frappe.db.get_value(\"Item\", item.item_code, \"custom_length\") or 0\r\n        length = float(length)\r\n\r\n        if item.qty != 0:\r\n\r\n            # If warehouse is Cut Piece\r\n            if item.t_warehouse and \"Cut\" in item.t_warehouse:\r\n                item.custom_millimeter = length / item.qty\r\n\r\n            # Otherwise Full Length\r\n            else:\r\n                item.custom_millimeter = length * item.qty",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ],
+ "timeout": 0
+}
