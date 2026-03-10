@@ -9,9 +9,9 @@ def execute(filters=None):
     return columns, data
 
 
-# -------------------------------------------------------------
+# ---------------------------------------------------------
 # COLUMNS
-# -------------------------------------------------------------
+# ---------------------------------------------------------
 
 def get_columns():
 
@@ -51,6 +51,20 @@ def get_columns():
             "fieldname": "custom_length",
             "fieldtype": "Float",
             "width": 120
+        },
+
+        {
+            "label": "Length",
+            "fieldname": "piece_length",
+            "fieldtype": "Float",
+            "width": 120
+        },
+
+        {
+            "label": "Millimeter",
+            "fieldname": "millimeter",
+            "fieldtype": "Float",
+            "width": 150
         },
 
         {
@@ -101,9 +115,9 @@ def get_columns():
     ]
 
 
-# -------------------------------------------------------------
+# ---------------------------------------------------------
 # DATA
-# -------------------------------------------------------------
+# ---------------------------------------------------------
 
 def get_data(filters):
 
@@ -142,6 +156,15 @@ def get_data(filters):
             sle.item_code,
             item.item_name,
             item.custom_length,
+
+            sed.piece_length,
+
+            CASE
+                WHEN sle.warehouse LIKE '%%Cut%%'
+                THEN item.custom_length / ABS(sle.actual_qty)
+                ELSE item.custom_length * ABS(sle.actual_qty)
+            END AS millimeter,
+
             sle.warehouse,
             sle.actual_qty,
             sle.qty_after_transaction,
@@ -156,6 +179,12 @@ def get_data(filters):
             `tabItem` item
         ON
             sle.item_code = item.name
+
+        LEFT JOIN
+            `tabStock Entry Detail` sed
+        ON
+            sle.voucher_no = sed.parent
+            AND sle.item_code = sed.item_code
 
         WHERE
             sle.docstatus < 2
