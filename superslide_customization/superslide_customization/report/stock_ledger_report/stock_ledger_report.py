@@ -17,93 +17,29 @@ def get_columns():
 
     return [
 
-        {
-            "label": "Posting Date",
-            "fieldname": "posting_date",
-            "fieldtype": "Date",
-            "width": 120
-        },
+        {"label": "Posting Date", "fieldname": "posting_date", "fieldtype": "Date", "width": 120},
 
-        {
-            "label": "Posting Time",
-            "fieldname": "posting_time",
-            "fieldtype": "Time",
-            "width": 100
-        },
+        {"label": "Posting Time", "fieldname": "posting_time", "fieldtype": "Time", "width": 100},
 
-        {
-            "label": "Item Code",
-            "fieldname": "item_code",
-            "fieldtype": "Link",
-            "options": "Item",
-            "width": 150
-        },
+        {"label": "Item Code", "fieldname": "item_code", "fieldtype": "Link", "options": "Item", "width": 150},
 
-        {
-            "label": "Item Name",
-            "fieldname": "item_name",
-            "fieldtype": "Data",
-            "width": 200
-        },
+        {"label": "Item Name", "fieldname": "item_name", "fieldtype": "Data", "width": 200},
 
-        {
-            "label": "Custom Length",
-            "fieldname": "custom_length",
-            "fieldtype": "Float",
-            "width": 120
-        },
+        {"label": "Length", "fieldname": "piece_length", "fieldtype": "Float", "width": 120},
 
-        {
-            "label": "Millimeter",
-            "fieldname": "millimeter",
-            "fieldtype": "Float",
-            "width": 150
-        },
+        {"label": "Millimeter", "fieldname": "millimeter", "fieldtype": "Float", "width": 150},
 
-        {
-            "label": "Warehouse",
-            "fieldname": "warehouse",
-            "fieldtype": "Link",
-            "options": "Warehouse",
-            "width": 180
-        },
+        {"label": "Warehouse", "fieldname": "warehouse", "fieldtype": "Link", "options": "Warehouse", "width": 180},
 
-        {
-            "label": "Actual Qty",
-            "fieldname": "actual_qty",
-            "fieldtype": "Float",
-            "width": 120
-        },
+        {"label": "Actual Qty", "fieldname": "actual_qty", "fieldtype": "Float", "width": 120},
 
-        {
-            "label": "Balance Qty",
-            "fieldname": "qty_after_transaction",
-            "fieldtype": "Float",
-            "width": 140
-        },
+        {"label": "Balance Qty", "fieldname": "qty_after_transaction", "fieldtype": "Float", "width": 140},
 
-        {
-            "label": "Voucher Type",
-            "fieldname": "voucher_type",
-            "fieldtype": "Data",
-            "width": 150
-        },
+        {"label": "Voucher Type", "fieldname": "voucher_type", "fieldtype": "Data", "width": 150},
 
-        {
-            "label": "Voucher No",
-            "fieldname": "voucher_no",
-            "fieldtype": "Dynamic Link",
-            "options": "voucher_type",
-            "width": 170
-        },
+        {"label": "Voucher No", "fieldname": "voucher_no", "fieldtype": "Dynamic Link", "options": "voucher_type", "width": 170},
 
-        {
-            "label": "Company",
-            "fieldname": "company",
-            "fieldtype": "Link",
-            "options": "Company",
-            "width": 150
-        }
+        {"label": "Company", "fieldname": "company", "fieldtype": "Link", "options": "Company", "width": 150}
 
     ]
 
@@ -148,12 +84,13 @@ def get_data(filters):
             sle.posting_time,
             sle.item_code,
             item.item_name,
-            item.custom_length,
+
+            rcp.piece_length,
 
             CASE
                 WHEN sle.warehouse LIKE '%%Cut%%'
-                THEN item.custom_length / ABS(sle.actual_qty)
-                ELSE item.custom_length * ABS(sle.actual_qty)
+                THEN rcp.piece_length
+                ELSE rcp.piece_length * ABS(sle.actual_qty)
             END AS millimeter,
 
             sle.warehouse,
@@ -170,6 +107,17 @@ def get_data(filters):
             `tabItem` item
         ON
             sle.item_code = item.name
+
+        LEFT JOIN
+            `tabRod Cutting` rc
+        ON
+            rc.stock_entry_ref = sle.voucher_no
+
+        LEFT JOIN
+            `tabRod Cutting Pieces` rcp
+        ON
+            rcp.parent = rc.name
+            AND rcp.item = sle.item_code
 
         WHERE
             sle.docstatus < 2
