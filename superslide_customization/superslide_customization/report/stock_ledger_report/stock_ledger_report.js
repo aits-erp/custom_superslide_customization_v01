@@ -1,4 +1,5 @@
 frappe.query_reports["Stock Ledger Report"] = {
+
     "filters": [
 
         {
@@ -23,7 +24,7 @@ frappe.query_reports["Stock Ledger Report"] = {
 
         {
             "fieldname": "item_code",
-            "label": "Item Code",
+            "label": "Item",
             "fieldtype": "Link",
             "options": "Item"
         },
@@ -43,4 +44,5 @@ frappe.query_reports["Stock Ledger Report"] = {
         }
 
     ]
+
 };
