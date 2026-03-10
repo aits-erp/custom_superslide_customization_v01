@@ -9,6 +9,7 @@
   "item",
   "piece_length",
   "qty",
+  "warehouse",
   "total_length"
  ],
  "fields": [
@@ -36,13 +37,20 @@
    "fieldname": "total_length",
    "fieldtype": "Float",
    "label": "Total Length"
+  },
+  {
+   "fieldname": "warehouse",
+   "fieldtype": "Link",
+   "label": "Warehouse",
+   "options": "Warehouse",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-03-10 16:14:20.487311",
+ "modified": "2026-03-10 18:52:44.336700",
  "modified_by": "Administrator",
  "module": "superslide_customization",
  "name": "Rod Cutting Pieces",

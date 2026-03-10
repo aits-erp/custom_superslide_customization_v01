@@ -43,10 +43,13 @@ class RODCutting(Document):
         for row in self.rod_cutting_pieces:
 
             if not row.item:
-                frappe.throw("Item required in Rod Cutting Pieces")
+                frappe.throw(f"Item required in row {row.idx}")
 
             if not row.qty:
-                frappe.throw("Qty required in Rod Cutting Pieces")
+                frappe.throw(f"Qty required in row {row.idx}")
+
+            if not row.warehouse:
+                frappe.throw(f"Warehouse required in row {row.idx}")
 
             row.total_length = (row.piece_length or 0) * (row.qty or 0)
 
@@ -79,7 +82,10 @@ class RODCutting(Document):
             se.stock_entry_type = "Repack"
             se.company = frappe.defaults.get_user_default("Company")
 
-            # OUT ITEM
+            # -------------------------------------------------
+            # OUT ITEM (Full Rod)
+            # -------------------------------------------------
+
             se.append(
                 "items",
                 {
@@ -89,7 +95,10 @@ class RODCutting(Document):
                 },
             )
 
-            # IN ITEMS
+            # -------------------------------------------------
+            # IN ITEMS (Cut Pieces → Row Warehouse)
+            # -------------------------------------------------
+
             for row in self.rod_cutting_pieces:
 
                 se.append(
@@ -97,24 +106,41 @@ class RODCutting(Document):
                     {
                         "item_code": row.item,
                         "qty": row.qty,
-                        "t_warehouse": self.warehouse,
+                        "t_warehouse": row.warehouse,
                     },
                 )
 
+            # -------------------------------------------------
             # APPLY LENGTH CALCULATION
+            # -------------------------------------------------
+
             for item in se.items:
 
-                if item.qty and item.item_code:
+                if not item.item_code or not item.qty:
+                    continue
 
+                length = 0
+
+                # Safe field existence check
+                if frappe.db.has_column("Item", "custom_length"):
                     length = frappe.db.get_value("Item", item.item_code, "custom_length") or 0
-                    length = float(length)
 
-                    if item.qty != 0:
+                length = float(length)
 
-                        if item.t_warehouse and "Cut" in item.t_warehouse:
-                            item.custom_millimeter = length / item.qty
-                        else:
-                            item.custom_millimeter = length * item.qty
+                if item.qty != 0:
+
+                    # If going to cut warehouse
+                    if item.t_warehouse and "Cut" in item.t_warehouse:
+
+                        item.custom_millimeter = length / item.qty if length else 0
+
+                    else:
+
+                        item.custom_millimeter = length * item.qty if length else 0
+                        
+            # -------------------------------------------------
+            # INSERT + SUBMIT
+            # -------------------------------------------------
 
             se.insert(ignore_permissions=True)
             se.submit()
@@ -129,48 +155,3 @@ class RODCutting(Document):
             )
 
             frappe.throw("Failed to create Stock Entry")
-
-    # def create_stock_entry(self):
-
-    #     try:
-
-    #         se = frappe.new_doc("Stock Entry")
-
-    #         se.stock_entry_type = "Repack"
-    #         se.company = frappe.defaults.get_user_default("Company")
-
-    #         # OUTGOING ITEM
-    #         se.append(
-    #             "items",
-    #             {
-    #                 "item_code": self.item,
-    #                 "qty": self.qty,
-    #                 "s_warehouse": self.warehouse,
-    #             },
-    #         )
-
-    #         # INCOMING PIECES
-    #         for row in self.rod_cutting_pieces:
-
-    #             se.append(
-    #                 "items",
-    #                 {
-    #                     "item_code": row.item,
-    #                     "qty": row.qty,
-    #                     "t_warehouse": self.warehouse,
-    #                 },
-    #             )
-
-    #         se.insert(ignore_permissions=True)
-    #         se.submit()
-
-    #         return se
-
-    #     except Exception:
-
-    #         frappe.log_error(
-    #             frappe.get_traceback(),
-    #             "Rod Cutting Stock Entry Creation Failed",
-    #         )
-
-    #         frappe.throw("Failed to create Stock Entry")
