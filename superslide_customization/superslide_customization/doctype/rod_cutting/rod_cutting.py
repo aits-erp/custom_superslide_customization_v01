@@ -132,45 +132,45 @@ class RODCutting(Document):
 
     # def create_stock_entry(self):
 
-        try:
+    #     try:
 
-            se = frappe.new_doc("Stock Entry")
+    #         se = frappe.new_doc("Stock Entry")
 
-            se.stock_entry_type = "Repack"
-            se.company = frappe.defaults.get_user_default("Company")
+    #         se.stock_entry_type = "Repack"
+    #         se.company = frappe.defaults.get_user_default("Company")
 
-            # OUTGOING ITEM
-            se.append(
-                "items",
-                {
-                    "item_code": self.item,
-                    "qty": self.qty,
-                    "s_warehouse": self.warehouse,
-                },
-            )
+    #         # OUTGOING ITEM
+    #         se.append(
+    #             "items",
+    #             {
+    #                 "item_code": self.item,
+    #                 "qty": self.qty,
+    #                 "s_warehouse": self.warehouse,
+    #             },
+    #         )
 
-            # INCOMING PIECES
-            for row in self.rod_cutting_pieces:
+    #         # INCOMING PIECES
+    #         for row in self.rod_cutting_pieces:
 
-                se.append(
-                    "items",
-                    {
-                        "item_code": row.item,
-                        "qty": row.qty,
-                        "t_warehouse": self.warehouse,
-                    },
-                )
+    #             se.append(
+    #                 "items",
+    #                 {
+    #                     "item_code": row.item,
+    #                     "qty": row.qty,
+    #                     "t_warehouse": self.warehouse,
+    #                 },
+    #             )
 
-            se.insert(ignore_permissions=True)
-            se.submit()
+    #         se.insert(ignore_permissions=True)
+    #         se.submit()
 
-            return se
+    #         return se
 
-        except Exception:
+    #     except Exception:
 
-            frappe.log_error(
-                frappe.get_traceback(),
-                "Rod Cutting Stock Entry Creation Failed",
-            )
+    #         frappe.log_error(
+    #             frappe.get_traceback(),
+    #             "Rod Cutting Stock Entry Creation Failed",
+    #         )
 
-            frappe.throw("Failed to create Stock Entry")
+    #         frappe.throw("Failed to create Stock Entry")
