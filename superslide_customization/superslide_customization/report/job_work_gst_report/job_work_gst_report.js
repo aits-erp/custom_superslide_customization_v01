@@ -12,14 +12,6 @@ frappe.query_reports["Job Work GST Report"] = {
         },
 
         {
-            fieldname: "company",
-            label: "Company",
-            fieldtype: "Link",
-            options: "Company",
-            reqd: 1
-        },
-
-        {
             fieldname: "from_date",
             label: "From Date",
             fieldtype: "Date",
@@ -38,13 +30,6 @@ frappe.query_reports["Job Work GST Report"] = {
             label: "Job Worker",
             fieldtype: "Link",
             options: "Supplier"
-        },
-
-        {
-            fieldname: "item_code",
-            label: "Item",
-            fieldtype: "Link",
-            options: "Item"
         }
 
     ]
