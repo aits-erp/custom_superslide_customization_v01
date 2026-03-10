@@ -15,21 +15,25 @@ def execute(filters=None):
     return columns, data
 
 
+# -----------------------------
+# Columns
+# -----------------------------
+
 def get_columns():
 
     return [
 
-        {"label": "SR No", "fieldname": "sr_no", "width": 80},
+        {"label": "SR No", "fieldname": "sr_no", "width": 70},
 
         {"label": "GSTIN of Job Worker", "fieldname": "gstin", "width": 180},
 
         {"label": "State", "fieldname": "state", "width": 120},
 
-        {"label": "Challan Number", "fieldname": "challan", "width": 200},
+        {"label": "Challan Number", "fieldname": "challan", "width": 180},
 
         {"label": "Challan Date", "fieldname": "date", "fieldtype": "Date", "width": 120},
 
-        {"label": "Item Code", "fieldname": "item_code", "width": 150},
+        {"label": "Item Code", "fieldname": "item_code", "width": 140},
 
         {"label": "Description of Goods", "fieldname": "item_name", "width": 200},
 
@@ -39,7 +43,15 @@ def get_columns():
 
         {"label": "Rate", "fieldname": "rate", "fieldtype": "Currency", "width": 120},
 
-        {"label": "Taxable Value", "fieldname": "taxable_value", "fieldtype": "Currency", "width": 150}
+        {"label": "Taxable Value", "fieldname": "taxable_value", "fieldtype": "Currency", "width": 150},
+
+        {"label": "Labour Charge", "fieldname": "labour", "fieldtype": "Currency", "width": 130},
+
+        {"label": "CGST %", "fieldname": "cgst", "width": 80},
+
+        {"label": "SGST %", "fieldname": "sgst", "width": 80},
+
+        {"label": "IGST %", "fieldname": "igst", "width": 80}
 
     ]
 
@@ -54,6 +66,9 @@ def get_from_job_work(filters):
 
     if filters.get("supplier"):
         conditions += " AND sr.supplier = %(supplier)s"
+
+    if filters.get("item_code"):
+        conditions += " AND sri.item_code = %(item_code)s"
 
     query = f"""
 
@@ -75,6 +90,7 @@ def get_from_job_work(filters):
 
         WHERE
             sr.docstatus = 1
+            AND sr.company = %(company)s
             AND sr.posting_date BETWEEN %(from_date)s AND %(to_date)s
             {conditions}
 
@@ -98,6 +114,9 @@ def get_to_job_work(filters):
     if filters.get("supplier"):
         conditions += " AND se.supplier = %(supplier)s"
 
+    if filters.get("item_code"):
+        conditions += " AND sed.item_code = %(item_code)s"
+
     query = f"""
 
         SELECT
@@ -118,6 +137,7 @@ def get_to_job_work(filters):
 
         WHERE
             se.docstatus = 1
+            AND se.company = %(company)s
             AND se.supplier IS NOT NULL
             AND se.posting_date BETWEEN %(from_date)s AND %(to_date)s
             {conditions}
@@ -132,7 +152,7 @@ def get_to_job_work(filters):
 
 
 # -----------------------------
-# Add Supplier GSTIN + State
+# Supplier GSTIN + State
 # -----------------------------
 
 def enrich_supplier_data(records):
@@ -151,6 +171,7 @@ def enrich_supplier_data(records):
         state = ""
 
         if supplier and supplier.supplier_primary_address:
+
             state = frappe.db.get_value(
                 "Address",
                 supplier.supplier_primary_address,
@@ -166,14 +187,35 @@ def enrich_supplier_data(records):
             "date": r.date,
             "item_code": r.item_code,
             "item_name": r.item_name,
-            "uqc": r.uqc,
+            "uqc": map_uqc(r.uqc),
             "qty": r.qty,
             "rate": r.rate,
-            "taxable_value": r.taxable_value
+            "taxable_value": r.taxable_value,
+            "labour": 0,
+            "cgst": 0,
+            "sgst": 0,
+            "igst": 0
 
         })
 
     return data
+
+
+# -----------------------------
+# GST UQC Mapping
+# -----------------------------
+
+def map_uqc(uom):
+
+    mapping = {
+        "Nos": "NOS",
+        "Kg": "KGS",
+        "Gram": "GMS",
+        "Litre": "LTR",
+        "Meter": "MTR"
+    }
+
+    return mapping.get(uom, uom)
 
 
 # -----------------------------
