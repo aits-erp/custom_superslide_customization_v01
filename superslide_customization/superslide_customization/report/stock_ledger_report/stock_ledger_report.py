@@ -54,13 +54,6 @@ def get_columns():
         },
 
         {
-            "label": "Length",
-            "fieldname": "piece_length",
-            "fieldtype": "Float",
-            "width": 120
-        },
-
-        {
             "label": "Millimeter",
             "fieldname": "millimeter",
             "fieldtype": "Float",
@@ -157,8 +150,6 @@ def get_data(filters):
             item.item_name,
             item.custom_length,
 
-            sed.piece_length,
-
             CASE
                 WHEN sle.warehouse LIKE '%%Cut%%'
                 THEN item.custom_length / ABS(sle.actual_qty)
@@ -179,12 +170,6 @@ def get_data(filters):
             `tabItem` item
         ON
             sle.item_code = item.name
-
-        LEFT JOIN
-            `tabStock Entry Detail` sed
-        ON
-            sle.voucher_no = sed.parent
-            AND sle.item_code = sed.item_code
 
         WHERE
             sle.docstatus < 2
