@@ -12,15 +12,26 @@ def execute(filters=None):
     total_length = 0
 
     for row in data:
-        total_qty += row.get("qty") or 0
-        total_length += row.get("total_length") or 0
+        total_qty += float(row.get("qty") or 0)
+        total_length += float(row.get("total_length") or 0)
 
-    # Add Grand Total row
-    data.append({
+    # Grand total row
+    total_row = {
+        "posting_date": "",
+        "posting_time": "",
+        "item_code": "",
         "item_name": "<b>Grand Total</b>",
+        "length": "",
         "qty": total_qty,
-        "total_length": total_length
-    })
+        "total_length": total_length,
+        "warehouse": "",
+        "balance_qty": "",
+        "voucher_type": "",
+        "voucher_no": "",
+        "company": ""
+    }
+
+    data.append(total_row)
 
     return columns, data
 
@@ -60,7 +71,6 @@ def get_data(filters):
     conditions = []
     values = {}
 
-    # Ledger Type Logic
     if filters.get("ledger_type") == "Full Length Stock Ledger":
 
         conditions.append("sle.warehouse = 'FL - TTCPL'")
@@ -72,8 +82,6 @@ def get_data(filters):
         conditions.append("sle.warehouse = 'Cut Length - TTCPL'")
         length_expr = "MAX(rcp.piece_length)"
         total_expr = "MAX(rcp.piece_length) * ABS(sle.actual_qty)"
-
-    # Filters
 
     if filters.get("company"):
         conditions.append("sle.company = %(company)s")
