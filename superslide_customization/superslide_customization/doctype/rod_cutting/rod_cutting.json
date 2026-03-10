@@ -1,0 +1,132 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-03-10 15:57:32.198856",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_xn1d",
+  "item",
+  "rod_length",
+  "total_input_length",
+  "column_break_qcno",
+  "warehouse",
+  "qty",
+  "stock_entry_ref",
+  "section_break_micm",
+  "rod_cutting_pieces",
+  "section_break_mixl",
+  "total_output_length",
+  "difference",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_xn1d",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "label": "Item",
+   "options": "Item"
+  },
+  {
+   "fieldname": "rod_length",
+   "fieldtype": "Float",
+   "label": "Rod Length"
+  },
+  {
+   "fieldname": "column_break_qcno",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "warehouse",
+   "fieldtype": "Link",
+   "label": "Warehouse",
+   "options": "Warehouse"
+  },
+  {
+   "fieldname": "qty",
+   "fieldtype": "Int",
+   "label": "Qty"
+  },
+  {
+   "fieldname": "stock_entry_ref",
+   "fieldtype": "Link",
+   "label": "Stock Entry Ref",
+   "options": "Stock Entry"
+  },
+  {
+   "fieldname": "section_break_mixl",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "total_input_length",
+   "fieldtype": "Float",
+   "label": "Total input length",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_output_length",
+   "fieldtype": "Float",
+   "label": "Total Output length",
+   "read_only": 1
+  },
+  {
+   "fieldname": "difference",
+   "fieldtype": "Float",
+   "label": "Difference"
+  },
+  {
+   "fieldname": "section_break_micm",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "rod_cutting_pieces",
+   "fieldtype": "Table",
+   "label": "Rod Cutting Pieces",
+   "options": "Rod Cutting Pieces"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "ROD Cutting",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-03-10 16:17:47.447732",
+ "modified_by": "Administrator",
+ "module": "superslide_customization",
+ "name": "ROD Cutting",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
