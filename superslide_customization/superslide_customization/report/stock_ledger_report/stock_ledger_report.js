@@ -1,46 +1,52 @@
-frappe.query_reports["Stock Ledger Report"] = {
+frappe.query_reports["Combined Stock Ledger"] = {
+
+    "add_total_row": 1,
 
     "filters": [
 
         {
-            "fieldname": "company",
-            "label": "Company",
-            "fieldtype": "Link",
-            "options": "Company",
-            "reqd": 1
+            fieldname: "ledger_type",
+            label: "Ledger Type",
+            fieldtype: "Select",
+            options: [
+                "Full Length Stock Ledger",
+                "Cut Piece Stock Ledger"
+            ],
+            default: "Full Length Stock Ledger",
+            reqd: 1
         },
 
         {
-            "fieldname": "from_date",
-            "label": "From Date",
-            "fieldtype": "Date"
+            fieldname: "company",
+            label: "Company",
+            fieldtype: "Link",
+            options: "Company"
         },
 
         {
-            "fieldname": "to_date",
-            "label": "To Date",
-            "fieldtype": "Date"
+            fieldname: "item_code",
+            label: "Item",
+            fieldtype: "Link",
+            options: "Item"
         },
 
         {
-            "fieldname": "item_code",
-            "label": "Item",
-            "fieldtype": "Link",
-            "options": "Item"
+            fieldname: "warehouse",
+            label: "Warehouse",
+            fieldtype: "Link",
+            options: "Warehouse"
         },
 
         {
-            "fieldname": "warehouse",
-            "label": "Warehouse",
-            "fieldtype": "Link",
-            "options": "Warehouse"
+            fieldname: "from_date",
+            label: "From Date",
+            fieldtype: "Date"
         },
 
         {
-            "fieldname": "voucher_type",
-            "label": "Voucher Type",
-            "fieldtype": "Select",
-            "options": "\nStock Entry\nPurchase Receipt\nDelivery Note\nStock Reconciliation"
+            fieldname: "to_date",
+            label: "To Date",
+            fieldtype: "Date"
         }
 
     ]
