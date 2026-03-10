@@ -3,35 +3,31 @@ import frappe
 
 def execute(filters=None):
 
-    columns = get_columns(filters)
+    columns = get_columns()
     data = get_data(filters)
 
-    add_grand_total(data)
+    data = add_grand_total(data)
 
     return columns, data
 
 
-# -----------------------------
-# Columns
-# -----------------------------
-
-def get_columns(filters):
+def get_columns():
 
     return [
 
-        {"label": "SR No", "fieldname": "sr_no", "fieldtype": "Int", "width": 70},
+        {"label": "SR No", "fieldname": "sr_no", "fieldtype": "Int", "width": 60},
 
         {"label": "GSTIN of Job Worker", "fieldname": "gstin", "width": 170},
 
         {"label": "State", "fieldname": "state", "width": 120},
 
-        {"label": "Challan Number", "fieldname": "challan", "width": 170},
+        {"label": "Challan Number", "fieldname": "challan", "width": 180},
 
         {"label": "Challan Date", "fieldname": "date", "fieldtype": "Date", "width": 120},
 
         {"label": "Description of Goods", "fieldname": "item_name", "width": 220},
 
-        {"label": "UQC", "fieldname": "uqc", "width": 100},
+        {"label": "UQC", "fieldname": "uqc", "width": 90},
 
         {"label": "Quantity", "fieldname": "qty", "fieldtype": "Float", "width": 120},
 
@@ -39,59 +35,44 @@ def get_columns(filters):
 
         {"label": "Labour Charge", "fieldname": "labour", "fieldtype": "Currency", "width": 150},
 
-        {"label": "IGST Rate %", "fieldname": "igst", "width": 100},
+        {"label": "IGST Rate (%)", "fieldname": "igst", "width": 100},
 
-        {"label": "CGST Rate %", "fieldname": "cgst", "width": 100},
+        {"label": "CGST Rate (%)", "fieldname": "cgst", "width": 100},
 
-        {"label": "SGST Rate %", "fieldname": "sgst", "width": 100},
+        {"label": "SGST Rate (%)", "fieldname": "sgst", "width": 100},
 
     ]
 
-
-# -----------------------------
-# Data
-# -----------------------------
 
 def get_data(filters):
 
     conditions = ""
 
-    if filters.from_date:
-        conditions += f" AND se.posting_date >= '{filters.from_date}'"
+    if filters.get("supplier"):
+        conditions += " AND sup.name = %(supplier)s"
 
-    if filters.to_date:
-        conditions += f" AND se.posting_date <= '{filters.to_date}'"
-
-    if filters.supplier:
-        conditions += f" AND se.supplier = '{filters.supplier}'"
-
-    if filters.item_code:
-        conditions += f" AND sed.item_code = '{filters.item_code}'"
+    if filters.get("item_code"):
+        conditions += " AND item.item_code = %(item_code)s"
 
 
-    if filters.report_type == "To Job Work":
+    # ---------------------------------
+    # TO JOB WORK
+    # ---------------------------------
 
-        stock_type = "Material Transfer"
+    if filters.get("report_type") == "To Job Work":
 
-
-    else:
-
-        stock_type = "Subcontract"
-
-
-    data = frappe.db.sql(f"""
+        query = """
 
         SELECT
 
-            sup.gstin,
-            addr.state,
             se.name as challan,
             se.posting_date as date,
             sed.item_name,
-            sed.uom,
             sed.qty,
-            sed.amount as value,
-            0 as labour
+            sed.uom,
+            sup.gstin,
+            addr.state,
+            sed.amount as value
 
         FROM `tabStock Entry` se
 
@@ -104,19 +85,64 @@ def get_data(filters):
         LEFT JOIN `tabAddress` addr
             ON addr.name = sup.supplier_primary_address
 
+        LEFT JOIN `tabItem` item
+            ON item.name = sed.item_code
+
         WHERE
             se.docstatus = 1
-            AND se.stock_entry_type = '{stock_type}'
-            {conditions}
+            AND se.stock_entry_type = 'Material Transfer to Supplier'
+            AND se.posting_date BETWEEN %(from_date)s AND %(to_date)s
 
-    """, as_dict=1)
+        """ + conditions
 
 
-    result = []
+    # ---------------------------------
+    # FROM JOB WORK
+    # ---------------------------------
 
-    for i, d in enumerate(data, start=1):
+    else:
 
-        result.append({
+        query = """
+
+        SELECT
+
+            sr.name as challan,
+            sr.posting_date as date,
+            sri.item_name,
+            sri.qty,
+            sri.uom,
+            sup.gstin,
+            addr.state,
+            sri.amount as value
+
+        FROM `tabSubcontracting Receipt` sr
+
+        JOIN `tabSubcontracting Receipt Item` sri
+            ON sri.parent = sr.name
+
+        LEFT JOIN `tabSupplier` sup
+            ON sup.name = sr.supplier
+
+        LEFT JOIN `tabAddress` addr
+            ON addr.name = sup.supplier_primary_address
+
+        LEFT JOIN `tabItem` item
+            ON item.name = sri.item_code
+
+        WHERE
+            sr.docstatus = 1
+            AND sr.posting_date BETWEEN %(from_date)s AND %(to_date)s
+
+        """ + conditions
+
+
+    records = frappe.db.sql(query, filters, as_dict=1)
+
+    data = []
+
+    for i, d in enumerate(records, start=1):
+
+        data.append({
 
             "sr_no": i,
             "gstin": d.gstin,
@@ -127,19 +153,19 @@ def get_data(filters):
             "uqc": get_uqc(d.uom),
             "qty": d.qty,
             "value": d.value,
-            "labour": d.labour,
-            "igst": get_tax_rate("IGST"),
-            "cgst": get_tax_rate("CGST"),
-            "sgst": get_tax_rate("SGST")
+            "labour": 0,
+            "igst": 0,
+            "cgst": 0,
+            "sgst": 0
 
         })
 
-    return result
+    return data
 
 
-# -----------------------------
+# -------------------------
 # UQC Mapping
-# -----------------------------
+# -------------------------
 
 def get_uqc(uom):
 
@@ -156,37 +182,19 @@ def get_uqc(uom):
     return mapping.get(uom, uom)
 
 
-# -----------------------------
-# GST Rate Pull
-# -----------------------------
-
-def get_tax_rate(tax_type):
-
-    rate = frappe.db.sql("""
-
-        SELECT rate
-        FROM `tabItem Tax`
-        WHERE tax_type LIKE %s
-        LIMIT 1
-
-    """, f"%{tax_type}%", as_dict=1)
-
-    return rate[0].rate if rate else 0
-
-
-# -----------------------------
+# -------------------------
 # Grand Total
-# -----------------------------
+# -------------------------
 
 def add_grand_total(data):
 
     total_qty = 0
     total_value = 0
 
-    for d in data:
+    for row in data:
 
-        total_qty += d["qty"]
-        total_value += d["value"]
+        total_qty += row["qty"]
+        total_value += row["value"]
 
     data.append({
 
@@ -195,3 +203,5 @@ def add_grand_total(data):
         "value": total_value
 
     })
+
+    return data
