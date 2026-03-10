@@ -1,5 +1,5 @@
 // ==========================================================
-// ROD CUTTING CALCULATIONS
+// ROD CUTTING CALCULATIONS 
 // ==========================================================
 
 frappe.ui.form.on("Rod Cutting Pieces", {
@@ -14,6 +14,7 @@ frappe.ui.form.on("Rod Cutting Pieces", {
 
 });
 
+//testing comment
 
 function calculate_piece_total(frm, cdt, cdn) {
 
@@ -28,8 +29,6 @@ function calculate_piece_total(frm, cdt, cdn) {
 
     calculate_output_total(frm);
 }
-
-
 
 // ==========================================================
 // TOTAL OUTPUT LENGTH

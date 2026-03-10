@@ -1,12 +1,7 @@
 import frappe
 from frappe.model.document import Document
 
-
 class RODCutting(Document):
-
-    # ==========================================================
-    # VALIDATION
-    # ==========================================================
 
     def validate(self):
 
@@ -35,8 +30,6 @@ class RODCutting(Document):
                 f"Input Length ({self.total_input_length}) must equal Output Length ({self.total_output_length})"
             )
 
-
-
     # ==========================================================
     # CALCULATIONS
     # ==========================================================
@@ -62,8 +55,6 @@ class RODCutting(Document):
         self.total_output_length = total_output
 
         self.difference = self.total_input_length - self.total_output_length
-
-
 
     # ==========================================================
     # ON SUBMIT → CREATE STOCK ENTRY
