@@ -1,4 +1,4 @@
-frappe.query_reports["Combined Stock Ledger"] = {
+frappe.query_reports["Stock Ledger Report"] = {
 
     "add_total_row": 1,
 
